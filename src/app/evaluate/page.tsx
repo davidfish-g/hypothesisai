@@ -2,84 +2,81 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
+import type { Hypothesis } from '@/types/api';
 
-export default function Evaluate() {
+const domains = [
+  'Physics',
+  'Chemistry',
+  'Biology',
+  'Computer Science',
+  'Mathematics',
+  'Psychology',
+  'Neuroscience',
+  'Astronomy',
+  'Environmental Science',
+  'Medicine',
+];
+
+export default function EvaluatePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [hypothesis, setHypothesis] = useState<any>(null);
+  const [hypothesis, setHypothesis] = useState<Hypothesis | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [ratings, setRatings] = useState({
     plausibility: 0,
     novelty: 0,
     testability: 0,
   });
   const [comments, setComments] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    const createTestHypothesis = async () => {
-      try {
-        const response = await fetch('/api/hypotheses', {
+  const fetchHypothesis = async () => {
+    try {
+      const response = await fetch('/api/hypotheses');
+      if (!response.ok) throw new Error('Failed to fetch hypothesis');
+      const data = await response.json();
+      
+      if (data.length === 0) {
+        // If no hypotheses exist, generate a new one
+        const randomDomain = domains[Math.floor(Math.random() * domains.length)];
+        const generateResponse = await fetch('/api/generate', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content: "The quantum entanglement of neural networks could be used to create a new form of artificial intelligence that operates at the quantum level.",
-            modelName: "GPT-4",
-            domain: "Quantum Computing"
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain: randomDomain }),
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to create test hypothesis');
-        }
-
-        const data = await response.json();
-        setHypothesis(data);
-      } catch (error) {
-        console.error('Failed to create test hypothesis:', error);
+        
+        if (!generateResponse.ok) throw new Error('Failed to generate hypothesis');
+        const newHypothesis = await generateResponse.json();
+        setHypothesis(newHypothesis);
+      } else {
+        setHypothesis(data[0]);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching hypothesis:', error);
+      setError('Failed to load hypothesis. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const fetchHypothesis = async () => {
-      try {
-        const response = await fetch('/api/hypotheses');
-        const data = await response.json();
-        if (data.length > 0) {
-          setHypothesis(data[0]); // Use the first hypothesis for now
-        } else {
-          // If no hypotheses exist, create a test one
-          await createTestHypothesis();
-        }
-      } catch (error) {
-        console.error('Failed to fetch hypothesis:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
+  useEffect(() => {
     if (status === 'authenticated') {
       fetchHypothesis();
     }
   }, [status]);
 
-  const handleRatingChange = (criterion: keyof typeof ratings, value: number) => {
-    setRatings((prev) => ({ ...prev, [criterion]: value }));
-  };
-
-  const handleSubmit = async () => {
-    if (!session?.user || !hypothesis) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!hypothesis) return;
 
     setIsSubmitting(true);
+    setError('');
+
     try {
       const response = await fetch('/api/evaluations', {
         method: 'POST',
@@ -88,7 +85,9 @@ export default function Evaluate() {
         },
         body: JSON.stringify({
           hypothesisId: hypothesis.id,
-          ...ratings,
+          plausibility: ratings.plausibility,
+          novelty: ratings.novelty,
+          testability: ratings.testability,
           comments,
         }),
       });
@@ -97,14 +96,27 @@ export default function Evaluate() {
         throw new Error('Failed to submit evaluation');
       }
 
-      // Reset form and show success message
+      // Reset form
       setRatings({ plausibility: 0, novelty: 0, testability: 0 });
       setComments('');
-      router.refresh();
-      // TODO: Show success toast
+
+      // Generate a new hypothesis
+      const randomDomain = domains[Math.floor(Math.random() * domains.length)];
+      const generateResponse = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: randomDomain }),
+      });
+
+      if (!generateResponse.ok) {
+        throw new Error('Failed to generate new hypothesis');
+      }
+
+      const newHypothesis = await generateResponse.json();
+      setHypothesis(newHypothesis);
     } catch (error) {
       console.error('Error submitting evaluation:', error);
-      // TODO: Show error toast
+      setError('Failed to submit evaluation. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -121,38 +133,41 @@ export default function Evaluate() {
     );
   }
 
-  if (!session?.user || !hypothesis) {
+  if (!session?.user) {
+    router.push('/auth/signin');
     return null;
   }
 
+  if (!hypothesis) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="text-center">
+          <p className="text-gray-600">No hypotheses available. Please try again later.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Evaluate Hypothesis</h1>
-        <div className="text-sm text-gray-600">
-          Domain: <span className="font-medium">{hypothesis.domain}</span>
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Evaluate Hypothesis</h1>
+        <p className="text-gray-600">Rate the following hypothesis based on plausibility, novelty, and testability.</p>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Hypothesis</h2>
+          <p className="text-gray-700">{hypothesis.content}</p>
+        </div>
+        <div className="text-sm text-gray-500">
+          <p>Domain: {hypothesis.domain}</p>
+          <p>Generated by: {hypothesis.modelName}</p>
         </div>
       </div>
 
-      {/* Hypothesis Card */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Hypothesis</h2>
-            <p className="mt-2 text-gray-700">{hypothesis.content}</p>
-          </div>
-          <div className="text-sm text-gray-600">
-            Generated by: <span className="font-medium">{hypothesis.modelName}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Rating Form */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">Your Evaluation</h2>
-        
-        <div className="space-y-6">
-          {/* Plausibility Rating */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Plausibility (1-5)
@@ -161,7 +176,8 @@ export default function Evaluate() {
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
                   key={value}
-                  onClick={() => handleRatingChange('plausibility', value)}
+                  type="button"
+                  onClick={() => setRatings({ ...ratings, plausibility: value })}
                   className={`w-10 h-10 rounded-full border ${
                     ratings.plausibility === value
                       ? 'bg-blue-600 text-white border-blue-600'
@@ -174,7 +190,6 @@ export default function Evaluate() {
             </div>
           </div>
 
-          {/* Novelty Rating */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Novelty (1-5)
@@ -183,7 +198,8 @@ export default function Evaluate() {
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
                   key={value}
-                  onClick={() => handleRatingChange('novelty', value)}
+                  type="button"
+                  onClick={() => setRatings({ ...ratings, novelty: value })}
                   className={`w-10 h-10 rounded-full border ${
                     ratings.novelty === value
                       ? 'bg-blue-600 text-white border-blue-600'
@@ -196,7 +212,6 @@ export default function Evaluate() {
             </div>
           </div>
 
-          {/* Testability Rating */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Testability (1-5)
@@ -205,7 +220,8 @@ export default function Evaluate() {
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
                   key={value}
-                  onClick={() => handleRatingChange('testability', value)}
+                  type="button"
+                  onClick={() => setRatings({ ...ratings, testability: value })}
                   className={`w-10 h-10 rounded-full border ${
                     ratings.testability === value
                       ? 'bg-blue-600 text-white border-blue-600'
@@ -218,31 +234,32 @@ export default function Evaluate() {
             </div>
           </div>
 
-          {/* Comments */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Comments
+              Comments (Optional)
             </label>
-            <textarea
+            <Textarea
               value={comments}
-              onChange={(e) => setComments(e.target.value)}
-              rows={4}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComments(e.target.value)}
               placeholder="Share your thoughts about this hypothesis..."
+              rows={4}
             />
           </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <Button
-              onClick={handleSubmit}
-              disabled={!ratings.plausibility || !ratings.novelty || !ratings.testability || isSubmitting}
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Evaluation'}
-            </Button>
-          </div>
         </div>
-      </div>
+
+        {error && (
+          <p className="text-red-600 text-sm">{error}</p>
+        )}
+
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit Evaluation'}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 } 

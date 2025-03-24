@@ -1,61 +1,83 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(request: Request) {
-  const session = await getServerSession();
-  
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { hypothesisId, plausibility, novelty, testability, comments } = await request.json();
 
-    // First, verify that the hypothesis exists
-    const hypothesis = await prisma.hypothesis.findUnique({
-      where: { id: hypothesisId },
-    });
-
-    if (!hypothesis) {
+    if (!hypothesisId || !plausibility || !novelty || !testability) {
       return NextResponse.json(
-        { error: 'Hypothesis not found' },
-        { status: 404 }
+        { error: 'Missing required fields' },
+        { status: 400 }
       );
     }
 
     // Get the user from the database
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email! },
+      where: { email: session.user.email },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const evaluation = await prisma.evaluation.create({
-      data: {
-        plausibility,
-        novelty,
-        testability,
-        comments,
-        hypothesis: {
-          connect: { id: hypothesisId }
+    // Check if user has already evaluated this hypothesis
+    const existingEvaluation = await prisma.evaluation.findUnique({
+      where: {
+        hypothesisId_userId: {
+          hypothesisId,
+          userId: user.id,
         },
-        user: {
-          connect: { id: user.id }
-        }
       },
     });
 
+    let evaluation;
+    if (existingEvaluation) {
+      // Update existing evaluation
+      evaluation = await prisma.evaluation.update({
+        where: {
+          hypothesisId_userId: {
+            hypothesisId,
+            userId: user.id,
+          },
+        },
+        data: {
+          plausibility,
+          novelty,
+          testability,
+          comments,
+        },
+      });
+    } else {
+      // Create new evaluation
+      evaluation = await prisma.evaluation.create({
+        data: {
+          plausibility,
+          novelty,
+          testability,
+          comments,
+          hypothesis: {
+            connect: { id: hypothesisId },
+          },
+          user: {
+            connect: { id: user.id },
+          },
+        },
+      });
+    }
+
     return NextResponse.json(evaluation);
   } catch (error) {
-    console.error('Failed to submit evaluation:', error);
+    console.error('Error creating evaluation:', error);
     return NextResponse.json(
-      { error: 'Failed to submit evaluation' },
+      { error: 'Failed to create evaluation' },
       { status: 500 }
     );
   }
