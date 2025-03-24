@@ -1,41 +1,31 @@
-export type Hypothesis = {
+export interface Hypothesis {
   id: string;
   content: string;
-  modelName: string;
   domain: string;
-  createdAt: string;
-  metadata: any;
-  evaluations: Evaluation[];
-  averageScores?: {
-    plausibility: number;
+  modelName: string;
+  novelty: number;
+  plausibility: number;
+  testability: number;
+  averageScores: {
     novelty: number;
+    plausibility: number;
     testability: number;
-    totalEvaluations: number;
   };
-};
+  totalEvaluations: number;
+  createdAt: string;
+}
 
-export type Evaluation = {
+export interface Evaluation {
   id: string;
   hypothesisId: string;
   userId: string;
-  plausibility: number;
   novelty: number;
+  plausibility: number;
   testability: number;
   comments?: string;
   createdAt: string;
-  updatedAt: string;
-  user?: {
-    name?: string;
-    expertise: string[];
-  };
-  hypothesis: {
-    id: string;
-    content: string;
-    modelName: string;
-    domain: string;
-    createdAt: string;
-  };
-};
+  hypothesis: Hypothesis;
+}
 
 export type ApiError = {
   error: string;

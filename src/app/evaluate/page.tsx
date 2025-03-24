@@ -29,8 +29,8 @@ export default function EvaluatePage() {
   const [error, setError] = useState('');
   const [selectedDomain, setSelectedDomain] = useState('');
   const [ratings, setRatings] = useState({
-    plausibility: 0,
     novelty: 0,
+    plausibility: 0,
     testability: 0,
   });
   const [comments, setComments] = useState('');
@@ -76,8 +76,8 @@ export default function EvaluatePage() {
         },
         body: JSON.stringify({
           hypothesisId: hypothesis.id,
-          plausibility: ratings.plausibility,
           novelty: ratings.novelty,
+          plausibility: ratings.plausibility,
           testability: ratings.testability,
           comments,
         }),
@@ -88,7 +88,7 @@ export default function EvaluatePage() {
       }
 
       // Reset form and generate new hypothesis
-      setRatings({ plausibility: 0, novelty: 0, testability: 0 });
+      setRatings({ novelty: 0, plausibility: 0, testability: 0 });
       setComments('');
       await generateHypothesis(selectedDomain);
     } catch (error) {
@@ -166,7 +166,7 @@ export default function EvaluatePage() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Evaluate Hypothesis</h1>
-            <p className="text-gray-600">Rate the following hypothesis based on plausibility, novelty, and testability.</p>
+            <p className="text-gray-600">Rate the following hypothesis based on novelty, plausibility, and testability.</p>
           </div>
           <Button
             variant="outline"
@@ -192,18 +192,17 @@ export default function EvaluatePage() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Plausibility (1-5)
+              Novelty (1-5)
             </label>
             <div className="flex space-x-2">
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
                   key={value}
-                  type="button"
-                  onClick={() => setRatings({ ...ratings, plausibility: value })}
-                  className={`w-10 h-10 rounded-full border ${
-                    ratings.plausibility === value
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'border-gray-300 text-gray-700 hover:border-blue-600'
+                  onClick={() => setRatings({ ...ratings, novelty: value })}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    ratings.novelty === value
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {value}
@@ -214,18 +213,17 @@ export default function EvaluatePage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Novelty (1-5)
+              Plausibility (1-5)
             </label>
             <div className="flex space-x-2">
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
                   key={value}
-                  type="button"
-                  onClick={() => setRatings({ ...ratings, novelty: value })}
-                  className={`w-10 h-10 rounded-full border ${
-                    ratings.novelty === value
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'border-gray-300 text-gray-700 hover:border-blue-600'
+                  onClick={() => setRatings({ ...ratings, plausibility: value })}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    ratings.plausibility === value
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {value}

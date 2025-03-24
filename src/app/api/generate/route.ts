@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     3. Novel but plausible
     4. Written in clear, concise language
     
-    Format: Just the hypothesis statement, no additional text.`;
+    Format: Just the hypothesis statement, no additional text. Don't put it in quotes, and don't start with "Hypothesis: " or anything like that.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",

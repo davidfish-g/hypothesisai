@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 type ModelScore = {
   name: string;
   domain: string;
-  plausibility: number;
   novelty: number;
+  plausibility: number;
   testability: number;
   totalEvaluations: number;
 };
@@ -50,30 +50,30 @@ export default function Leaderboard() {
           const existing = modelScores.get(key) || {
             name: hypothesis.modelName,
             domain: hypothesis.domain,
-            plausibility: 0,
             novelty: 0,
+            plausibility: 0,
             testability: 0,
             totalEvaluations: 0,
           };
 
           // Calculate new averages correctly
           const newTotalEvaluations = existing.totalEvaluations + 1;
-          const newPlausibility = existing.totalEvaluations === 0 
-            ? hypothesis.averageScores.plausibility 
-            : (existing.plausibility * existing.totalEvaluations + hypothesis.averageScores.plausibility) / newTotalEvaluations;
           const newNovelty = existing.totalEvaluations === 0 
             ? hypothesis.averageScores.novelty 
             : (existing.novelty * existing.totalEvaluations + hypothesis.averageScores.novelty) / newTotalEvaluations;
+          const newPlausibility = existing.totalEvaluations === 0 
+            ? hypothesis.averageScores.plausibility 
+            : (existing.plausibility * existing.totalEvaluations + hypothesis.averageScores.plausibility) / newTotalEvaluations;
           const newTestability = existing.totalEvaluations === 0 
             ? hypothesis.averageScores.testability 
             : (existing.testability * existing.totalEvaluations + hypothesis.averageScores.testability) / newTotalEvaluations;
 
           modelScores.set(key, {
             ...existing,
-            plausibility: newPlausibility,
-            novelty: newNovelty,
-            testability: newTestability,
             totalEvaluations: newTotalEvaluations,
+            novelty: newNovelty,
+            plausibility: newPlausibility,
+            testability: newTestability,
           });
         });
 
@@ -143,15 +143,15 @@ export default function Leaderboard() {
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('plausibility')}
-                >
-                  Plausibility {sortField === 'plausibility' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('novelty')}
                 >
                   Novelty {sortField === 'novelty' && (sortDirection === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('plausibility')}
+                >
+                  Plausibility {sortField === 'plausibility' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
@@ -177,10 +177,10 @@ export default function Leaderboard() {
                     {model.domain}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {model.plausibility.toFixed(1)}
+                    {model.novelty.toFixed(1)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {model.novelty.toFixed(1)}
+                    {model.plausibility.toFixed(1)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {model.testability.toFixed(1)}
@@ -199,15 +199,15 @@ export default function Leaderboard() {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">About the Ratings</h2>
         <div className="space-y-4">
           <div>
-            <h3 className="text-sm font-medium text-gray-700">Plausibility</h3>
-            <p className="text-sm text-gray-600">
-              How well-supported is the hypothesis by existing scientific knowledge and evidence?
-            </p>
-          </div>
-          <div>
             <h3 className="text-sm font-medium text-gray-700">Novelty</h3>
             <p className="text-sm text-gray-600">
               How original and innovative is the hypothesis compared to existing theories?
+            </p>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-gray-700">Plausibility</h3>
+            <p className="text-sm text-gray-600">
+              How well-supported is the hypothesis by existing scientific knowledge and evidence?
             </p>
           </div>
           <div>

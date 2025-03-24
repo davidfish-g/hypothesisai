@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import type { Evaluation } from '@/types/api';
 
-type SortField = 'domain' | 'plausibility' | 'novelty' | 'testability' | 'createdAt';
+type SortField = 'domain' | 'novelty' | 'plausibility' | 'testability' | 'createdAt';
 type SortDirection = 'asc' | 'desc';
 
 export default function Dashboard() {
@@ -128,15 +128,15 @@ export default function Dashboard() {
                   </th>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('plausibility')}
-                  >
-                    Plausibility {sortField === 'plausibility' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('novelty')}
                   >
                     Novelty {sortField === 'novelty' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('plausibility')}
+                  >
+                    Plausibility {sortField === 'plausibility' && (sortDirection === 'asc' ? '↑' : '↓')}
                   </th>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
@@ -162,10 +162,10 @@ export default function Dashboard() {
                       {evaluation.hypothesis.domain}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {evaluation.plausibility}
+                      {evaluation.novelty}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {evaluation.novelty}
+                      {evaluation.plausibility}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {evaluation.testability}
@@ -219,12 +219,12 @@ export default function Dashboard() {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Ratings</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Plausibility</p>
-                    <p className="text-lg font-medium text-gray-900">{selectedEvaluation.plausibility}/5</p>
-                  </div>
-                  <div>
                     <p className="text-sm text-gray-500">Novelty</p>
                     <p className="text-lg font-medium text-gray-900">{selectedEvaluation.novelty}/5</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Plausibility</p>
+                    <p className="text-lg font-medium text-gray-900">{selectedEvaluation.plausibility}/5</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Testability</p>
