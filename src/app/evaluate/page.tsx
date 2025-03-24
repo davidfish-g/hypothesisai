@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
@@ -14,7 +14,7 @@ const mockHypothesis = {
 };
 
 export default function Evaluate() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [ratings, setRatings] = useState({
     plausibility: 0,
@@ -23,6 +23,12 @@ export default function Evaluate() {
   });
   const [comments, setComments] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+    }
+  }, [status, router]);
 
   const handleRatingChange = (criterion: keyof typeof ratings, value: number) => {
     setRatings((prev) => ({ ...prev, [criterion]: value }));
@@ -61,6 +67,21 @@ export default function Evaluate() {
       setIsSubmitting(false);
     }
   };
+
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session?.user) {
+    return null;
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
