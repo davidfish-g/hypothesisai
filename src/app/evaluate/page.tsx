@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import type { Hypothesis } from '@/types/api';
 
@@ -28,6 +27,7 @@ export default function EvaluatePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [selectedDomain, setSelectedDomain] = useState('');
   const [ratings, setRatings] = useState({
     plausibility: 0,
     novelty: 0,
@@ -35,40 +35,31 @@ export default function EvaluatePage() {
   });
   const [comments, setComments] = useState('');
 
-  const fetchHypothesis = async () => {
+  const generateHypothesis = async (domain: string) => {
     try {
-      const response = await fetch('/api/hypotheses');
-      if (!response.ok) throw new Error('Failed to fetch hypothesis');
-      const data = await response.json();
-      
-      if (data.length === 0) {
-        // If no hypotheses exist, generate a new one
-        const randomDomain = domains[Math.floor(Math.random() * domains.length)];
-        const generateResponse = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ domain: randomDomain }),
-        });
-        
-        if (!generateResponse.ok) throw new Error('Failed to generate hypothesis');
-        const newHypothesis = await generateResponse.json();
-        setHypothesis(newHypothesis);
-      } else {
-        setHypothesis(data[0]);
-      }
+      setIsLoading(true);
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate hypothesis');
+      const newHypothesis = await response.json();
+      setHypothesis(newHypothesis);
     } catch (error) {
-      console.error('Error fetching hypothesis:', error);
-      setError('Failed to load hypothesis. Please try again.');
+      console.error('Error generating hypothesis:', error);
+      setError('Failed to generate hypothesis. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchHypothesis();
+    if (status === 'authenticated' && selectedDomain) {
+      generateHypothesis(selectedDomain);
     }
-  }, [status]);
+  }, [status, selectedDomain]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,24 +87,10 @@ export default function EvaluatePage() {
         throw new Error('Failed to submit evaluation');
       }
 
-      // Reset form
+      // Reset form and generate new hypothesis
       setRatings({ plausibility: 0, novelty: 0, testability: 0 });
       setComments('');
-
-      // Generate a new hypothesis
-      const randomDomain = domains[Math.floor(Math.random() * domains.length)];
-      const generateResponse = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ domain: randomDomain }),
-      });
-
-      if (!generateResponse.ok) {
-        throw new Error('Failed to generate new hypothesis');
-      }
-
-      const newHypothesis = await generateResponse.json();
-      setHypothesis(newHypothesis);
+      await generateHypothesis(selectedDomain);
     } catch (error) {
       console.error('Error submitting evaluation:', error);
       setError('Failed to submit evaluation. Please try again.');
@@ -122,7 +99,7 @@ export default function EvaluatePage() {
     }
   };
 
-  if (status === 'loading' || isLoading) {
+  if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -138,6 +115,41 @@ export default function EvaluatePage() {
     return null;
   }
 
+  if (!selectedDomain) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-600 mb-2">Select a Domain</h1>
+          <p className="text-gray-600">Choose a scientific domain to evaluate hypotheses from.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {domains.map((domain) => (
+            <button
+              key={domain}
+              onClick={() => setSelectedDomain(domain)}
+              className="p-6 bg-white rounded-lg shadow-sm border hover:border-blue-500 transition-colors text-left"
+            >
+              <h2 className="text-xl font-semibold text-gray-900">{domain}</h2>
+              <p className="mt-2 text-gray-600">Evaluate hypotheses in {domain.toLowerCase()}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Generating hypothesis...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!hypothesis) {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -151,8 +163,18 @@ export default function EvaluatePage() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Evaluate Hypothesis</h1>
-        <p className="text-gray-600">Rate the following hypothesis based on plausibility, novelty, and testability.</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Evaluate Hypothesis</h1>
+            <p className="text-gray-600">Rate the following hypothesis based on plausibility, novelty, and testability.</p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setSelectedDomain('')}
+          >
+            Change Domain
+          </Button>
+        </div>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
@@ -243,6 +265,7 @@ export default function EvaluatePage() {
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComments(e.target.value)}
               placeholder="Share your thoughts about this hypothesis..."
               rows={4}
+              className="text-gray-900 placeholder:text-gray-500"
             />
           </div>
         </div>

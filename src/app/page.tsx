@@ -6,7 +6,7 @@ export default function Home() {
     <div className="space-y-24">
       {/* Hero Section */}
       <section className="text-center py-20">
-        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+        <h1 className="text-4xl md:text-6xl font-bold text-gray-600 mb-6">
           Evaluate AI-Generated Scientific Hypotheses
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
@@ -46,34 +46,34 @@ export default function Home() {
 
       {/* How It Works Section */}
       <section className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-12">How It Works</h2>
+        <h2 className="text-3xl font-bold text-gray-600 mb-12">How It Works</h2>
         <div className="grid md:grid-cols-4 gap-8">
           <div>
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-blue-600 font-bold">1</span>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Sign Up</h3>
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">Sign Up</h3>
             <p className="text-gray-600">Create an account and verify your expertise</p>
           </div>
           <div>
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-blue-600 font-bold">2</span>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Select Domain</h3>
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">Select Domain</h3>
             <p className="text-gray-600">Choose your field of expertise</p>
           </div>
           <div>
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-blue-600 font-bold">3</span>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Evaluate</h3>
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">Evaluate</h3>
             <p className="text-gray-600">Review and rate AI-generated hypotheses</p>
           </div>
           <div>
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-blue-600 font-bold">4</span>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Contribute</h3>
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">Contribute</h3>
             <p className="text-gray-600">Help improve AI models and scientific research</p>
           </div>
         </div>

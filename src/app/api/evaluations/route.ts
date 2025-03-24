@@ -84,15 +84,24 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const hypothesisId = searchParams.get('hypothesisId');
-  const userId = searchParams.get('userId');
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   try {
+    // Get the user from the database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     const evaluations = await prisma.evaluation.findMany({
       where: {
-        ...(hypothesisId && { hypothesisId }),
-        ...(userId && { userId }),
+        userId: user.id,
       },
       include: {
         hypothesis: true,
@@ -103,6 +112,9 @@ export async function GET(request: Request) {
             expertise: true,
           },
         },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 

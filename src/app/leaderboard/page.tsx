@@ -12,6 +12,9 @@ type ModelScore = {
   totalEvaluations: number;
 };
 
+type SortField = 'name' | 'domain' | 'plausibility' | 'novelty' | 'testability' | 'totalEvaluations';
+type SortDirection = 'asc' | 'desc';
+
 // Temporary mock data for domains until we have an API endpoint
 const mockDomains = [
   'Quantum Computing',
@@ -22,17 +25,16 @@ const mockDomains = [
 ];
 
 export default function Leaderboard() {
-  const [selectedDomain, setSelectedDomain] = useState<string>('all');
   const [models, setModels] = useState<ModelScore[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortField, setSortField] = useState<SortField>('plausibility');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   useEffect(() => {
     const fetchModels = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `/api/hypotheses${selectedDomain !== 'all' ? `?domain=${selectedDomain}` : ''}`
-        );
+        const response = await fetch('/api/hypotheses');
         
         if (!response.ok) {
           throw new Error('Failed to fetch models');
@@ -54,12 +56,24 @@ export default function Leaderboard() {
             totalEvaluations: 0,
           };
 
+          // Calculate new averages correctly
+          const newTotalEvaluations = existing.totalEvaluations + 1;
+          const newPlausibility = existing.totalEvaluations === 0 
+            ? hypothesis.averageScores.plausibility 
+            : (existing.plausibility * existing.totalEvaluations + hypothesis.averageScores.plausibility) / newTotalEvaluations;
+          const newNovelty = existing.totalEvaluations === 0 
+            ? hypothesis.averageScores.novelty 
+            : (existing.novelty * existing.totalEvaluations + hypothesis.averageScores.novelty) / newTotalEvaluations;
+          const newTestability = existing.totalEvaluations === 0 
+            ? hypothesis.averageScores.testability 
+            : (existing.testability * existing.totalEvaluations + hypothesis.averageScores.testability) / newTotalEvaluations;
+
           modelScores.set(key, {
             ...existing,
-            plausibility: (existing.plausibility * existing.totalEvaluations + hypothesis.averageScores.plausibility) / (existing.totalEvaluations + 1),
-            novelty: (existing.novelty * existing.totalEvaluations + hypothesis.averageScores.novelty) / (existing.totalEvaluations + 1),
-            testability: (existing.testability * existing.totalEvaluations + hypothesis.averageScores.testability) / (existing.totalEvaluations + 1),
-            totalEvaluations: existing.totalEvaluations + hypothesis.averageScores.totalEvaluations,
+            plausibility: newPlausibility,
+            novelty: newNovelty,
+            testability: newTestability,
+            totalEvaluations: newTotalEvaluations,
           });
         });
 
@@ -73,29 +87,37 @@ export default function Leaderboard() {
     };
 
     fetchModels();
-  }, [selectedDomain]);
+  }, []);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const sortedModels = [...models].sort((a, b) => {
+    const multiplier = sortDirection === 'asc' ? 1 : -1;
+    const aValue = a[sortField];
+    const bValue = b[sortField];
+    
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return aValue.localeCompare(bValue) * multiplier;
+    }
+    
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return (aValue - bValue) * multiplier;
+    }
+    
+    return 0;
+  });
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Model Performance Leaderboard</h1>
-        <div className="flex space-x-2">
-          <Button
-            variant={selectedDomain === 'all' ? 'default' : 'outline'}
-            onClick={() => setSelectedDomain('all')}
-          >
-            All Domains
-          </Button>
-          {mockDomains.map((domain) => (
-            <Button
-              key={domain}
-              variant={selectedDomain === domain ? 'default' : 'outline'}
-              onClick={() => setSelectedDomain(domain)}
-            >
-              {domain}
-            </Button>
-          ))}
-        </div>
+        <h1 className="text-3xl font-bold text-gray-600">Model Performance Leaderboard</h1>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -107,28 +129,46 @@ export default function Leaderboard() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Model
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('name')}
+                >
+                  Model {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Domain
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('domain')}
+                >
+                  Domain {sortField === 'domain' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Plausibility
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('plausibility')}
+                >
+                  Plausibility {sortField === 'plausibility' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Novelty
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('novelty')}
+                >
+                  Novelty {sortField === 'novelty' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Testability
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('testability')}
+                >
+                  Testability {sortField === 'testability' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Evaluations
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('totalEvaluations')}
+                >
+                  Evaluations {sortField === 'totalEvaluations' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {models.map((model) => (
+              {sortedModels.map((model) => (
                 <tr key={`${model.name}-${model.domain}`}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {model.name}

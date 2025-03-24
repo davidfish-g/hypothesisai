@@ -28,6 +28,13 @@ export type Evaluation = {
     name?: string;
     expertise: string[];
   };
+  hypothesis: {
+    id: string;
+    content: string;
+    modelName: string;
+    domain: string;
+    createdAt: string;
+  };
 };
 
 export type ApiError = {
