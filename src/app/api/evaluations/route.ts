@@ -12,14 +12,42 @@ export async function POST(request: Request) {
   try {
     const { hypothesisId, plausibility, novelty, testability, comments } = await request.json();
 
+    // First, verify that the hypothesis exists
+    const hypothesis = await prisma.hypothesis.findUnique({
+      where: { id: hypothesisId },
+    });
+
+    if (!hypothesis) {
+      return NextResponse.json(
+        { error: 'Hypothesis not found' },
+        { status: 404 }
+      );
+    }
+
+    // Get the user from the database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email! },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
     const evaluation = await prisma.evaluation.create({
       data: {
-        hypothesisId,
-        userId: session.user.id,
         plausibility,
         novelty,
         testability,
         comments,
+        hypothesis: {
+          connect: { id: hypothesisId }
+        },
+        user: {
+          connect: { id: user.id }
+        }
       },
     });
 

@@ -48,12 +48,11 @@ export async function GET(request: Request) {
       },
       include: {
         evaluations: {
-          select: {
-            plausibility: true,
-            novelty: true,
-            testability: true,
+          include: {
             user: {
               select: {
+                id: true,
+                name: true,
                 expertise: true,
               },
             },
@@ -63,25 +62,17 @@ export async function GET(request: Request) {
     });
 
     // Calculate average scores for each hypothesis
-    const hypothesesWithScores = hypotheses.map((hypothesis: HypothesisWithEvaluations) => {
-      const scores = hypothesis.evaluations.reduce(
-        (acc: Scores, evaluation: Evaluation) => ({
-          plausibility: acc.plausibility + evaluation.plausibility,
-          novelty: acc.novelty + evaluation.novelty,
-          testability: acc.testability + evaluation.testability,
-          count: acc.count + 1,
-        }),
-        { plausibility: 0, novelty: 0, testability: 0, count: 0 }
-      );
+    const hypothesesWithScores = hypotheses.map(hypothesis => {
+      const evaluations = hypothesis.evaluations;
+      const averageScores = {
+        plausibility: evaluations.reduce((acc, evaluation) => acc + evaluation.plausibility, 0) / evaluations.length || 0,
+        novelty: evaluations.reduce((acc, evaluation) => acc + evaluation.novelty, 0) / evaluations.length || 0,
+        testability: evaluations.reduce((acc, evaluation) => acc + evaluation.testability, 0) / evaluations.length || 0,
+      };
 
       return {
         ...hypothesis,
-        averageScores: {
-          plausibility: scores.count ? scores.plausibility / scores.count : 0,
-          novelty: scores.count ? scores.novelty / scores.count : 0,
-          testability: scores.count ? scores.testability / scores.count : 0,
-          totalEvaluations: scores.count,
-        },
+        averageScores,
       };
     });
 
@@ -97,20 +88,19 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const session = await getServerSession();
-
+  
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const { content, modelName, domain, metadata } = await request.json();
+    const { content, modelName, domain } = await request.json();
 
     const hypothesis = await prisma.hypothesis.create({
       data: {
         content,
         modelName,
         domain,
-        metadata,
       },
     });
 
