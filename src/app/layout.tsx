@@ -24,7 +24,7 @@ export default function RootLayout({
             <div className="fixed h-full">
               <Sidebar />
             </div>
-            <main className="flex-1 overflow-y-auto ml-[200px]">
+            <main className="flex-1 overflow-y-auto ml-[200px] overscroll-contain scroll-smooth">
               <div className="container mx-auto px-4 py-8">
                 {children}
               </div>
