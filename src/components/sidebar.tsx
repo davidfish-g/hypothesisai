@@ -21,7 +21,7 @@ export function Sidebar() {
             HypothesisAI
           </span>
           <Image
-            src="/round-icons-skpI6e5yoeE-unsplash.png"
+            src="/logo.png"
             alt="HypothesisAI Logo"
             width={32}
             height={32}

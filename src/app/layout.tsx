@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "HypothesisAI - AI Hypothesis Evaluation Platform",
   description: "A platform for domain experts to evaluate AI-generated scientific hypotheses",
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
