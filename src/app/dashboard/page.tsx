@@ -202,7 +202,7 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         onClick={() => setSelectedEvaluation(evaluation)}
-                        className="text-blue-400 hover:text-blue-300"
+                        className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 transition-colors cursor-pointer"
                       >
                         View
                       </Button>
@@ -218,32 +218,35 @@ export default function Dashboard() {
       <AnimatePresence>
         {selectedEvaluation && (
           <motion.div 
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
+            onClick={() => setSelectedEvaluation(null)}
           >
             <motion.div 
-              className="bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700"
+              className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-700"
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6 border-b border-gray-700">
+              <div className="p-8 border-b border-gray-700">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-gray-200">Evaluation Details</h2>
+                  <h2 className="text-2xl font-semibold text-gray-200">Evaluation Details</h2>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedEvaluation(null)}
+                    className="hover:bg-gray-700 transition-colors cursor-pointer"
                   >
                     Close
                   </Button>
                 </div>
               </div>
-              <div className="p-6 space-y-6">
+              <div className="p-8 space-y-8">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}

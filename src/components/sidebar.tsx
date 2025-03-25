@@ -45,9 +45,12 @@ export function Sidebar() {
         </Link>
         {session ? (
           <div className="space-y-2">
-            <div className="px-4 py-2 text-sm text-gray-300">
-              {session.user?.name}
-            </div>
+            <Link 
+              href="/profile" 
+              className="block px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-md hover:text-gray-100"
+            >
+              Profile
+            </Link>
             <Button
               variant="outline"
               className="w-full"

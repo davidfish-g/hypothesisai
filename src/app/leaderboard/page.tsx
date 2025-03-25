@@ -138,10 +138,6 @@ export default function Leaderboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <div className="p-6 border-b border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-200">Overall Rankings</h2>
-        </div>
-        
         {isLoading ? (
           <div className="p-8 text-center text-gray-300">Loading models...</div>
         ) : models.length === 0 ? (
