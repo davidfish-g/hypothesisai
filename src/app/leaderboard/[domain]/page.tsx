@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -17,38 +17,28 @@ type ModelScore = {
 type SortField = 'name' | 'plausibility' | 'novelty' | 'testability' | 'overall' | 'totalEvaluations';
 type SortDirection = 'asc' | 'desc';
 
-const domains = [
-  'Physics',
-  'Chemistry',
-  'Biology',
-  'Computer Science',
-  'Mathematics',
-  'Psychology',
-  'Neuroscience',
-  'Astronomy',
-  'Environmental Science',
-  'Medicine',
-];
-
-export default function Leaderboard() {
+export default function DomainLeaderboard({ params }: { params: Promise<{ domain: string }> }) {
+  const resolvedParams = use(params);
   const [models, setModels] = useState<ModelScore[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortField, setSortField] = useState<SortField>('overall');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const domain = decodeURIComponent(resolvedParams.domain);
+  const formattedDomain = domain.charAt(0).toUpperCase() + domain.slice(1);
 
   useEffect(() => {
-    const fetchModels = async () => {
+    const fetchDomainModels = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('/api/hypotheses');
+        const response = await fetch(`/api/hypotheses?domain=${encodeURIComponent(formattedDomain)}`);
         
         if (!response.ok) {
-          throw new Error('Failed to fetch models');
+          throw new Error('Failed to fetch domain models');
         }
 
         const hypotheses = await response.json();
         
-        // Process hypotheses into model scores (aggregated across all domains)
+        // Process hypotheses into model scores for the selected domain
         const modelScores = new Map<string, ModelScore>();
         
         hypotheses.forEach((hypothesis: any) => {
@@ -62,7 +52,6 @@ export default function Leaderboard() {
             totalEvaluations: 0,
           };
 
-          // Calculate new averages correctly
           const newTotalEvaluations = existing.totalEvaluations + 1;
           const newNovelty = existing.totalEvaluations === 0 
             ? hypothesis.averageScores.novelty 
@@ -87,14 +76,14 @@ export default function Leaderboard() {
 
         setModels(Array.from(modelScores.values()));
       } catch (error) {
-        console.error('Error fetching models:', error);
+        console.error('Error fetching domain models:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchModels();
-  }, []);
+    fetchDomainModels();
+  }, [formattedDomain]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -129,7 +118,15 @@ export default function Leaderboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-3xl font-bold text-gray-200">Model Leaderboard</h1>
+        <h1 className="text-3xl font-bold text-gray-200">
+          {formattedDomain} Model Rankings
+        </h1>
+        <Button
+          variant="outline"
+          asChild
+        >
+          <Link href="/leaderboard">View Overall Rankings</Link>
+        </Button>
       </motion.div>
 
       <motion.div 
@@ -138,14 +135,10 @@ export default function Leaderboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <div className="p-6 border-b border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-200">Overall Rankings</h2>
-        </div>
-        
         {isLoading ? (
-          <div className="p-8 text-center text-gray-300">Loading models...</div>
-        ) : models.length === 0 ? (
-          <div className="p-8 text-center text-gray-300">No models available.</div>
+          <div className="p-8 text-center text-gray-300">Loading...</div>
+        ) : sortedModels.length === 0 ? (
+          <div className="p-8 text-center text-gray-300">No data available</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-700">
@@ -201,73 +194,6 @@ export default function Leaderboard() {
             </table>
           </div>
         )}
-      </motion.div>
-
-      <motion.div 
-        className="bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-700"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-      >
-        <h2 className="text-lg font-semibold text-gray-200 mb-4">View Rankings by Domain</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {domains.map((domain, index) => (
-            <motion.div
-              key={domain}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 + index * 0.05 }}
-            >
-              <Link
-                href={`/leaderboard/${encodeURIComponent(domain.toLowerCase())}`}
-                className="block p-6 bg-gray-800 rounded-lg shadow-sm border border-gray-700 hover:border-blue-500 transition-colors text-left"
-              >
-                <h2 className="text-xl font-semibold text-gray-200">{domain}</h2>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-
-      <motion.div 
-        className="bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-700"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-      >
-        <h2 className="text-lg font-semibold text-gray-200 mb-4">About the Ratings</h2>
-        <div className="space-y-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-          >
-            <h3 className="text-sm font-medium text-gray-300">Novelty</h3>
-            <p className="text-sm text-gray-400">
-              How original and innovative is the hypothesis compared to existing theories?
-            </p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-          >
-            <h3 className="text-sm font-medium text-gray-300">Plausibility</h3>
-            <p className="text-sm text-gray-400">
-              How well-supported is the hypothesis by existing scientific knowledge and evidence?
-            </p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
-          >
-            <h3 className="text-sm font-medium text-gray-300">Testability</h3>
-            <p className="text-sm text-gray-400">
-              How feasible is it to test and validate the hypothesis through experiments or observations?
-            </p>
-          </motion.div>
-        </div>
       </motion.div>
     </div>
   );

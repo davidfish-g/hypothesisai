@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Evaluation } from '@/types/api';
 
 type SortField = 'domain' | 'novelty' | 'plausibility' | 'testability' | 'createdAt';
@@ -73,12 +74,17 @@ export default function Dashboard() {
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <motion.div 
+        className="flex items-center justify-center min-h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
@@ -88,164 +94,208 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-600">Dashboard</h1>
-        <div className="text-sm text-gray-600">
+      <motion.div 
+        className="flex justify-between items-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-3xl font-bold text-gray-200">Dashboard</h1>
+        <div className="text-sm text-gray-300">
           Welcome, {session.user.name}
         </div>
-      </div>
+      </motion.div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
+      <motion.div 
+        className="bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-700"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Start Evaluating</h2>
+          <h2 className="text-xl font-semibold text-gray-200">Start Evaluating</h2>
           <Button asChild>
             <Link href="/evaluate">Evaluate Hypotheses</Link>
           </Button>
         </div>
-        <p className="text-gray-600">Help evaluate AI-generated scientific hypotheses and contribute to scientific knowledge.</p>
-      </div>
+        <p className="text-gray-300">Help evaluate AI-generated scientific hypotheses and contribute to scientific knowledge.</p>
+      </motion.div>
 
       {/* Evaluation History Section */}
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Your Evaluation History</h2>
+      <motion.div 
+        className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <div className="p-6 border-b border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-200">Your Evaluation History</h2>
         </div>
         
         {isLoading ? (
-          <div className="p-8 text-center text-gray-600">Loading evaluations...</div>
+          <motion.div 
+            className="p-8 text-center text-gray-300"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            Loading evaluations...
+          </motion.div>
         ) : evaluations.length === 0 ? (
-          <div className="p-8 text-center text-gray-600">You haven't evaluated any hypotheses yet.</div>
+          <motion.div 
+            className="p-8 text-center text-gray-300"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            You haven't evaluated any hypotheses yet.
+          </motion.div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-gray-900">
                 <tr>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('domain')}
-                  >
-                    Domain {sortField === 'domain' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('novelty')}
-                  >
-                    Novelty {sortField === 'novelty' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('plausibility')}
-                  >
-                    Plausibility {sortField === 'plausibility' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('testability')}
-                  >
-                    Testability {sortField === 'testability' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('createdAt')}
-                  >
-                    Date {sortField === 'createdAt' && (sortDirection === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {[
+                    { field: 'domain', label: 'Domain' },
+                    { field: 'novelty', label: 'Novelty' },
+                    { field: 'plausibility', label: 'Plausibility' },
+                    { field: 'testability', label: 'Testability' },
+                    { field: 'createdAt', label: 'Date' }
+                  ].map(({ field, label }) => (
+                    <th 
+                      key={field}
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-800"
+                      onClick={() => handleSort(field as SortField)}
+                    >
+                      {label} {sortField === field && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </th>
+                  ))}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Details
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedEvaluations.map((evaluation) => (
-                  <tr key={evaluation.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <tbody className="bg-gray-800 divide-y divide-gray-700">
+                {sortedEvaluations.map((evaluation, index) => (
+                  <motion.tr 
+                    key={evaluation.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 + index * 0.05 }}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
                       {evaluation.hypothesis.domain}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {evaluation.novelty}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      {evaluation.novelty.toFixed(1)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {evaluation.plausibility}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      {evaluation.plausibility.toFixed(1)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {evaluation.testability}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      {evaluation.testability.toFixed(1)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {new Date(evaluation.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <Button
                         variant="ghost"
-                        size="sm"
                         onClick={() => setSelectedEvaluation(evaluation)}
+                        className="text-blue-400 hover:text-blue-300"
                       >
                         View
                       </Button>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </motion.div>
 
-      {/* Evaluation Details Modal */}
-      {selectedEvaluation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-900">Evaluation Details</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedEvaluation(null)}
+      <AnimatePresence>
+        {selectedEvaluation && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div 
+              className="bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="p-6 border-b border-gray-700">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-semibold text-gray-200">Evaluation Details</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedEvaluation(null)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+              <div className="p-6 space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
                 >
-                  Close
-                </Button>
-              </div>
-            </div>
-            <div className="p-6 space-y-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Hypothesis</h3>
-                <p className="text-gray-700">{selectedEvaluation.hypothesis.content}</p>
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Domain</h3>
-                <p className="text-gray-700">{selectedEvaluation.hypothesis.domain}</p>
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Ratings</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Novelty</p>
-                    <p className="text-lg font-medium text-gray-900">{selectedEvaluation.novelty}/5</p>
+                  <h3 className="text-lg font-medium text-gray-200 mb-2">Hypothesis</h3>
+                  <p className="text-gray-300">{selectedEvaluation.hypothesis.content}</p>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                >
+                  <h3 className="text-lg font-medium text-gray-200 mb-2">Domain</h3>
+                  <p className="text-gray-300">{selectedEvaluation.hypothesis.domain}</p>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.3 }}
+                >
+                  <h3 className="text-lg font-medium text-gray-200 mb-2">Your Ratings</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-400">Novelty</p>
+                      <p className="text-gray-200">{selectedEvaluation.novelty.toFixed(1)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Plausibility</p>
+                      <p className="text-gray-200">{selectedEvaluation.plausibility.toFixed(1)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Testability</p>
+                      <p className="text-gray-200">{selectedEvaluation.testability.toFixed(1)}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Plausibility</p>
-                    <p className="text-lg font-medium text-gray-900">{selectedEvaluation.plausibility}/5</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Testability</p>
-                    <p className="text-lg font-medium text-gray-900">{selectedEvaluation.testability}/5</p>
-                  </div>
-                </div>
+                </motion.div>
+                {selectedEvaluation.comments && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.4 }}
+                  >
+                    <h3 className="text-lg font-medium text-gray-200 mb-2">Your Comments</h3>
+                    <p className="text-gray-300">{selectedEvaluation.comments}</p>
+                  </motion.div>
+                )}
               </div>
-              {selectedEvaluation.comments && (
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Your Comments</h3>
-                  <p className="text-gray-700 whitespace-pre-wrap">{selectedEvaluation.comments}</p>
-                </div>
-              )}
-              <div className="text-sm text-gray-500">
-                <p>Generated by: {selectedEvaluation.hypothesis.modelName}</p>
-                <p>Evaluated on: {new Date(selectedEvaluation.createdAt).toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 } 

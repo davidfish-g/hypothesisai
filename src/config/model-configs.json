@@ -1,0 +1,44 @@
+{
+  "gpt-4": {
+    "provider": "openai",
+    "params": {
+      "max_completion_tokens": 200,
+      "temperature": 1
+    }
+  },
+  "gpt-4o-mini": {
+    "provider": "openai",
+    "params": {
+      "max_completion_tokens": 200,
+      "temperature": 1
+    }
+  },
+  "o3-mini": {
+    "provider": "openai",
+    "params": {
+      "max_completion_tokens": 500,
+      "reasoning_effort": "high"
+    }
+  },
+  "claude-3-7-sonnet-20250219": {
+    "provider": "anthropic",
+    "params": {
+      "max_tokens": 200,
+      "temperature": 1
+    }
+  },
+  "claude-3-5-haiku-20241022": {
+    "provider": "anthropic",
+    "params": {
+      "max_tokens": 200,
+      "temperature": 1
+    }
+  },
+  "claude-3-opus-20240229": {
+    "provider": "anthropic",
+    "params": {
+      "max_tokens": 200,
+      "temperature": 1
+    }
+  }
+} 

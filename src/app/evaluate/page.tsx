@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Hypothesis } from '@/types/api';
 
 const domains = [
@@ -101,12 +102,17 @@ export default function EvaluatePage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <motion.div 
+        className="flex items-center justify-center min-h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
@@ -118,21 +124,28 @@ export default function EvaluatePage() {
   if (!selectedDomain) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-600 mb-2">Select a Domain</h1>
-          <p className="text-gray-600">Choose a scientific domain to evaluate hypotheses from.</p>
-        </div>
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-3xl font-bold text-gray-200 mb-2">Select a Domain</h1>
+          <p className="text-gray-300">Choose a scientific domain to evaluate hypotheses from.</p>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {domains.map((domain) => (
-            <button
+          {domains.map((domain, index) => (
+            <motion.button
               key={domain}
               onClick={() => setSelectedDomain(domain)}
-              className="p-6 bg-white rounded-lg shadow-sm border hover:border-blue-500 transition-colors text-left"
+              className="p-6 bg-gray-800 rounded-lg shadow-sm border border-gray-700 hover:border-blue-500 transition-colors text-left"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 + index * 0.05 }}
             >
-              <h2 className="text-xl font-semibold text-gray-900">{domain}</h2>
-              <p className="mt-2 text-gray-600">Evaluate hypotheses in {domain.toLowerCase()}</p>
-            </button>
+              <h2 className="text-xl font-semibold text-gray-200">{domain}</h2>
+            </motion.button>
           ))}
         </div>
       </div>
@@ -141,32 +154,47 @@ export default function EvaluatePage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <motion.div 
+        className="flex items-center justify-center min-h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Generating hypothesis...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto"></div>
+          <p className="mt-4 text-gray-300">Generating hypothesis...</p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   if (!hypothesis) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <motion.div 
+        className="max-w-4xl mx-auto p-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="text-center">
           <p className="text-gray-600">No hypotheses available. Please try again later.</p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-8">
+      <motion.div 
+        className="mb-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Evaluate Hypothesis</h1>
-            <p className="text-gray-600">Rate the following hypothesis based on novelty, plausibility, and testability.</p>
+            <h1 className="text-3xl font-bold text-gray-200 mb-2">Evaluate Hypothesis</h1>
+            <p className="text-gray-300">Rate the following hypothesis based on novelty, plausibility, and testability.</p>
           </div>
           <Button
             variant="outline"
@@ -175,112 +203,107 @@ export default function EvaluatePage() {
             Change Domain
           </Button>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
+      <motion.div 
+        className="bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-700 mb-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
         <div className="mb-4">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Hypothesis</h2>
-          <p className="text-gray-700">{hypothesis.content}</p>
+          <h2 className="text-xl font-semibold text-gray-200 mb-2">Hypothesis</h2>
+          <p className="text-gray-300">{hypothesis.content}</p>
         </div>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-400">
           <p>Domain: {hypothesis.domain}</p>
-          <p>Generated by: {hypothesis.modelName}</p>
         </div>
-      </div>
+      </motion.div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <motion.form 
+        onSubmit={handleSubmit} 
+        className="space-y-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Novelty (1-5)
-            </label>
-            <div className="flex space-x-2">
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button
-                  key={value}
-                  onClick={() => setRatings({ ...ratings, novelty: value })}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    ratings.novelty === value
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {value}
-                </button>
-              ))}
-            </div>
-          </div>
+          {[
+            { key: 'novelty', label: 'Novelty (1-5)', description: 'How original and innovative is the hypothesis?' },
+            { key: 'plausibility', label: 'Plausibility (1-5)', description: 'How well-supported is the hypothesis by existing knowledge?' },
+            { key: 'testability', label: 'Testability (1-5)', description: 'How feasible is it to test this hypothesis?' }
+          ].map((rating, index) => (
+            <motion.div 
+              key={rating.key}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+            >
+              <label className="block text-sm font-medium text-gray-200 mb-2">
+                {rating.label}
+              </label>
+              <div className="flex space-x-2">
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <Button
+                    key={value}
+                    type="button"
+                    variant={ratings[rating.key as keyof typeof ratings] === value ? 'default' : 'outline'}
+                    onClick={() => setRatings(prev => ({ ...prev, [rating.key]: value }))}
+                    className="flex-1"
+                  >
+                    {value}
+                  </Button>
+                ))}
+              </div>
+              <p className="mt-1 text-sm text-gray-400">{rating.description}</p>
+            </motion.div>
+          ))}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Plausibility (1-5)
-            </label>
-            <div className="flex space-x-2">
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button
-                  key={value}
-                  onClick={() => setRatings({ ...ratings, plausibility: value })}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    ratings.plausibility === value
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {value}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Testability (1-5)
-            </label>
-            <div className="flex space-x-2">
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setRatings({ ...ratings, testability: value })}
-                  className={`w-10 h-10 rounded-full border ${
-                    ratings.testability === value
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'border-gray-300 text-gray-700 hover:border-blue-600'
-                  }`}
-                >
-                  {value}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            <label className="block text-sm font-medium text-gray-200 mb-2">
               Comments (Optional)
             </label>
             <Textarea
               value={comments}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComments(e.target.value)}
-              placeholder="Share your thoughts about this hypothesis..."
-              rows={4}
-              className="text-gray-900 placeholder:text-gray-500"
+              onChange={(e) => setComments(e.target.value)}
+              placeholder="Share your thoughts on this hypothesis..."
+              className="w-full"
             />
-          </div>
+          </motion.div>
         </div>
 
-        {error && (
-          <p className="text-red-600 text-sm">{error}</p>
-        )}
-
-        <div className="flex justify-end">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+        >
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !ratings.novelty || !ratings.plausibility || !ratings.testability}
+            className="w-full"
           >
             {isSubmitting ? 'Submitting...' : 'Submit Evaluation'}
           </Button>
-        </div>
-      </form>
+        </motion.div>
+      </motion.form>
     </div>
   );
 } 
