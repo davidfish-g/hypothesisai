@@ -21,8 +21,10 @@ export default function RootLayout({
       <body className={`${inter.className} h-full`}>
         <Providers>
           <div className="flex h-full">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto bg-gray-900">
+            <div className="fixed h-full">
+              <Sidebar />
+            </div>
+            <main className="flex-1 overflow-y-auto ml-[200px]">
               <div className="container mx-auto px-4 py-8">
                 {children}
               </div>
