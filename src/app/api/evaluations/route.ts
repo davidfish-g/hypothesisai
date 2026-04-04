@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { prisma } from '@/lib/prisma';
+import { sql } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 
 export async function POST(request: Request) {
@@ -19,61 +19,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get the user from the database
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
+    const users = await sql`SELECT id FROM users WHERE email = ${session.user.email}`;
+    if (!users[0]) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+    const userId = users[0].id as string;
 
-    // Check if user has already evaluated this hypothesis
-    const existingEvaluation = await prisma.evaluation.findUnique({
-      where: {
-        hypothesisId_userId: {
-          hypothesisId,
-          userId: user.id,
-        },
-      },
-    });
+    // Upsert: update if exists, create if not
+    const rows = await sql`
+      INSERT INTO evaluations (id, "hypothesisId", "userId", plausibility, novelty, testability, comments, "createdAt", "updatedAt")
+      VALUES (gen_random_uuid(), ${hypothesisId}, ${userId}, ${plausibility}, ${novelty}, ${testability}, ${comments ?? null}, NOW(), NOW())
+      ON CONFLICT ("hypothesisId", "userId")
+      DO UPDATE SET plausibility = ${plausibility}, novelty = ${novelty}, testability = ${testability}, comments = ${comments ?? null}, "updatedAt" = NOW()
+      RETURNING *
+    `;
 
-    let evaluation;
-    if (existingEvaluation) {
-      // Update existing evaluation
-      evaluation = await prisma.evaluation.update({
-        where: {
-          hypothesisId_userId: {
-            hypothesisId,
-            userId: user.id,
-          },
-        },
-        data: {
-          plausibility,
-          novelty,
-          testability,
-          comments,
-        },
-      });
-    } else {
-      // Create new evaluation
-      evaluation = await prisma.evaluation.create({
-        data: {
-          plausibility,
-          novelty,
-          testability,
-          comments,
-          hypothesis: {
-            connect: { id: hypothesisId },
-          },
-          user: {
-            connect: { id: user.id },
-          },
-        },
-      });
-    }
-
-    return NextResponse.json(evaluation);
+    return NextResponse.json(rows[0]);
   } catch (error) {
     console.error('Error creating evaluation:', error);
     return NextResponse.json(
@@ -91,33 +52,22 @@ export async function GET(_request: Request) {
   }
 
   try {
-    // Get the user from the database
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-
-    if (!user) {
+    const users = await sql`SELECT id FROM users WHERE email = ${session.user.email}`;
+    if (!users[0]) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+    const userId = users[0].id as string;
 
-    const evaluations = await prisma.evaluation.findMany({
-      where: {
-        userId: user.id,
-      },
-      include: {
-        hypothesis: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            expertise: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const evaluations = await sql`
+      SELECT e.*,
+        json_build_object('id', h.id, 'content', h.content, 'modelName', h."modelName", 'domain', h.domain, 'createdAt', h."createdAt") as hypothesis,
+        json_build_object('id', u.id, 'name', u.name, 'expertise', u.expertise) as user
+      FROM evaluations e
+      JOIN hypotheses h ON e."hypothesisId" = h.id
+      JOIN users u ON e."userId" = u.id
+      WHERE e."userId" = ${userId}
+      ORDER BY e."createdAt" DESC
+    `;
 
     return NextResponse.json(evaluations);
   } catch (error) {
@@ -127,4 +77,4 @@ export async function GET(_request: Request) {
       { status: 500 }
     );
   }
-} 
+}

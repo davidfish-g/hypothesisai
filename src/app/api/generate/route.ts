@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
-import { prisma } from '@/lib/prisma';
+import { sql } from '@/lib/db';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 import modelConfigs from '@/config/model-configs.json';
@@ -136,21 +136,14 @@ export async function POST(request: Request) {
     const { hypothesisContent, model } = result;
 
     // Save the generated hypothesis to the database with the selected model
-    const hypothesis = await prisma.hypothesis.create({
-      data: {
-        content: hypothesisContent,
-        modelName: model,
-        domain,
-      },
-    });
+    const rows = await sql`
+      INSERT INTO hypotheses (id, content, "modelName", domain, "createdAt")
+      VALUES (gen_random_uuid(), ${hypothesisContent}, ${model}, ${domain}, NOW())
+      RETURNING id, content, domain, "createdAt"
+    `;
 
     // Return the hypothesis without revealing which model generated it
-    return NextResponse.json({
-      id: hypothesis.id,
-      content: hypothesis.content,
-      domain: hypothesis.domain,
-      createdAt: hypothesis.createdAt
-    });
+    return NextResponse.json(rows[0]);
   } catch (error) {
     console.error('Failed to generate hypothesis:', error);
     return NextResponse.json(

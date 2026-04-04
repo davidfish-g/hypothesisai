@@ -1,10 +1,9 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { prisma } from '@/lib/prisma';
+import { BunSqlAdapter } from '@/lib/auth-adapter';
 
 const handler = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: BunSqlAdapter(),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -34,7 +33,8 @@ const handler = NextAuth({
   pages: {
     signIn: '/auth/signin',
   },
+  secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
 });
 
-export { handler as GET, handler as POST }; 
+export { handler as GET, handler as POST };
