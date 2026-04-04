@@ -31,7 +31,8 @@ export async function GET(request: Request) {
       FROM hypotheses h
       LEFT JOIN evaluations e ON h.id = e."hypothesisId"
       ${where}
-      GROUP BY h.id`,
+      GROUP BY h.id
+      HAVING COUNT(e.id) > 0`,
       params
     );
 
