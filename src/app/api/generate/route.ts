@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { sql } from '@/lib/db';
+import { query } from '@/lib/db';
 import modelConfigs from '@/config/model-configs.json';
 
 type ModelConfig = {
@@ -98,11 +98,12 @@ export async function POST(request: Request) {
     }
     const { hypothesisContent, model } = result;
 
-    const rows = await sql`
-      INSERT INTO hypotheses (id, content, "modelName", domain, "createdAt")
-      VALUES (gen_random_uuid(), ${hypothesisContent}, ${model}, ${domain}, NOW())
-      RETURNING id, content, domain, "createdAt"
-    `;
+    const rows = await query(
+      `INSERT INTO hypotheses (id, content, "modelName", domain, "createdAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, NOW())
+       RETURNING id, content, domain, "createdAt"`,
+      [hypothesisContent, model, domain]
+    );
 
     return NextResponse.json(rows[0]);
   } catch (error) {

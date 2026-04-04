@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { sql } from '@/lib/db';
+import { query } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 
 export async function POST(request: Request) {
@@ -19,20 +19,20 @@ export async function POST(request: Request) {
       );
     }
 
-    const users = await sql`SELECT id FROM users WHERE email = ${session.user.email}`;
+    const users = await query(`SELECT id FROM users WHERE email = $1`, [session.user.email]);
     if (!users[0]) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
     const userId = users[0].id as string;
 
-    // Upsert: update if exists, create if not
-    const rows = await sql`
-      INSERT INTO evaluations (id, "hypothesisId", "userId", plausibility, novelty, testability, comments, "createdAt", "updatedAt")
-      VALUES (gen_random_uuid(), ${hypothesisId}, ${userId}, ${plausibility}, ${novelty}, ${testability}, ${comments ?? null}, NOW(), NOW())
-      ON CONFLICT ("hypothesisId", "userId")
-      DO UPDATE SET plausibility = ${plausibility}, novelty = ${novelty}, testability = ${testability}, comments = ${comments ?? null}, "updatedAt" = NOW()
-      RETURNING *
-    `;
+    const rows = await query(
+      `INSERT INTO evaluations (id, "hypothesisId", "userId", plausibility, novelty, testability, comments, "createdAt", "updatedAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW())
+       ON CONFLICT ("hypothesisId", "userId")
+       DO UPDATE SET plausibility = $3, novelty = $4, testability = $5, comments = $6, "updatedAt" = NOW()
+       RETURNING *`,
+      [hypothesisId, userId, plausibility, novelty, testability, comments ?? null]
+    );
 
     return NextResponse.json(rows[0]);
   } catch (error) {
@@ -52,22 +52,23 @@ export async function GET(_request: Request) {
   }
 
   try {
-    const users = await sql`SELECT id FROM users WHERE email = ${session.user.email}`;
+    const users = await query(`SELECT id FROM users WHERE email = $1`, [session.user.email]);
     if (!users[0]) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
     const userId = users[0].id as string;
 
-    const evaluations = await sql`
-      SELECT e.*,
+    const evaluations = await query(
+      `SELECT e.*,
         json_build_object('id', h.id, 'content', h.content, 'modelName', h."modelName", 'domain', h.domain, 'createdAt', h."createdAt") as hypothesis,
         json_build_object('id', u.id, 'name', u.name, 'expertise', u.expertise) as user
       FROM evaluations e
       JOIN hypotheses h ON e."hypothesisId" = h.id
       JOIN users u ON e."userId" = u.id
-      WHERE e."userId" = ${userId}
-      ORDER BY e."createdAt" DESC
-    `;
+      WHERE e."userId" = $1
+      ORDER BY e."createdAt" DESC`,
+      [userId]
+    );
 
     return NextResponse.json(evaluations);
   } catch (error) {

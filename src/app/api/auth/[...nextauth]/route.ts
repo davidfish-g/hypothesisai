@@ -1,9 +1,9 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import { BunSqlAdapter } from '@/lib/auth-adapter';
+import { PgAdapter } from '@/lib/auth-adapter';
 
 const handler = NextAuth({
-  adapter: BunSqlAdapter(),
+  adapter: PgAdapter(),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,

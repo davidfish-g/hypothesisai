@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { sql } from '@/lib/db';
+import { query } from '@/lib/db';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -8,55 +8,32 @@ export async function GET(request: Request) {
   const modelName = searchParams.get('modelName');
 
   try {
-    let hypotheses;
-    if (domain && modelName) {
-      hypotheses = await sql`
-        SELECT h.*,
-          COALESCE(AVG(e.plausibility), 0) as avg_plausibility,
-          COALESCE(AVG(e.novelty), 0) as avg_novelty,
-          COALESCE(AVG(e.testability), 0) as avg_testability,
-          COUNT(e.id) as evaluation_count
-        FROM hypotheses h
-        LEFT JOIN evaluations e ON h.id = e."hypothesisId"
-        WHERE h.domain = ${domain} AND h."modelName" = ${modelName}
-        GROUP BY h.id
-      `;
-    } else if (domain) {
-      hypotheses = await sql`
-        SELECT h.*,
-          COALESCE(AVG(e.plausibility), 0) as avg_plausibility,
-          COALESCE(AVG(e.novelty), 0) as avg_novelty,
-          COALESCE(AVG(e.testability), 0) as avg_testability,
-          COUNT(e.id) as evaluation_count
-        FROM hypotheses h
-        LEFT JOIN evaluations e ON h.id = e."hypothesisId"
-        WHERE h.domain = ${domain}
-        GROUP BY h.id
-      `;
-    } else if (modelName) {
-      hypotheses = await sql`
-        SELECT h.*,
-          COALESCE(AVG(e.plausibility), 0) as avg_plausibility,
-          COALESCE(AVG(e.novelty), 0) as avg_novelty,
-          COALESCE(AVG(e.testability), 0) as avg_testability,
-          COUNT(e.id) as evaluation_count
-        FROM hypotheses h
-        LEFT JOIN evaluations e ON h.id = e."hypothesisId"
-        WHERE h."modelName" = ${modelName}
-        GROUP BY h.id
-      `;
-    } else {
-      hypotheses = await sql`
-        SELECT h.*,
-          COALESCE(AVG(e.plausibility), 0) as avg_plausibility,
-          COALESCE(AVG(e.novelty), 0) as avg_novelty,
-          COALESCE(AVG(e.testability), 0) as avg_testability,
-          COUNT(e.id) as evaluation_count
-        FROM hypotheses h
-        LEFT JOIN evaluations e ON h.id = e."hypothesisId"
-        GROUP BY h.id
-      `;
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+
+    if (domain) {
+      params.push(domain);
+      conditions.push(`h.domain = $${params.length}`);
     }
+    if (modelName) {
+      params.push(modelName);
+      conditions.push(`h."modelName" = $${params.length}`);
+    }
+
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const hypotheses = await query(
+      `SELECT h.*,
+        COALESCE(AVG(e.plausibility), 0) as avg_plausibility,
+        COALESCE(AVG(e.novelty), 0) as avg_novelty,
+        COALESCE(AVG(e.testability), 0) as avg_testability,
+        COUNT(e.id) as evaluation_count
+      FROM hypotheses h
+      LEFT JOIN evaluations e ON h.id = e."hypothesisId"
+      ${where}
+      GROUP BY h.id`,
+      params
+    );
 
     const result = hypotheses.map((h: Record<string, unknown>) => ({
       id: h.id,
@@ -93,11 +70,12 @@ export async function POST(request: Request) {
   try {
     const { content, modelName, domain } = await request.json();
 
-    const rows = await sql`
-      INSERT INTO hypotheses (id, content, "modelName", domain, "createdAt")
-      VALUES (gen_random_uuid(), ${content}, ${modelName}, ${domain}, NOW())
-      RETURNING *
-    `;
+    const rows = await query(
+      `INSERT INTO hypotheses (id, content, "modelName", domain, "createdAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, NOW())
+       RETURNING *`,
+      [content, modelName, domain]
+    );
 
     return NextResponse.json(rows[0]);
   } catch (error) {
