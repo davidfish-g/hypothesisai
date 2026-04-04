@@ -26,7 +26,3 @@ export interface Evaluation {
   createdAt: string;
   hypothesis: Hypothesis;
 }
-
-export type ApiError = {
-  error: string;
-}; 

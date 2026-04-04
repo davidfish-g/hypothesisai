@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "HypothesisAI - AI Hypothesis Evaluation Platform",
   description: "A platform for domain experts to evaluate AI-generated scientific hypotheses",
   icons: {
-    icon: '/favicon.svg',
+    icon: '/logo.png',
   },
 };
 

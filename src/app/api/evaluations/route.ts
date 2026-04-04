@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       `INSERT INTO evaluations (id, "hypothesisId", "userId", plausibility, novelty, testability, comments, "createdAt", "updatedAt")
        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW())
        ON CONFLICT ("hypothesisId", "userId")
-       DO UPDATE SET plausibility = $3, novelty = $4, testability = $5, comments = $6, "updatedAt" = NOW()
+       DO UPDATE SET plausibility = EXCLUDED.plausibility, novelty = EXCLUDED.novelty, testability = EXCLUDED.testability, comments = EXCLUDED.comments, "updatedAt" = NOW()
        RETURNING *`,
       [hypothesisId, userId, plausibility, novelty, testability, comments ?? null]
     );

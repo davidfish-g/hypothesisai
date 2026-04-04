@@ -16,6 +16,7 @@ export const config = {
     '/dashboard/:path*',
     '/evaluate/:path*',
     '/api/evaluations/:path*',
-    '/api/hypotheses/:path*',
+    '/api/account/:path*',
+    '/profile/:path*',
   ],
 }; 

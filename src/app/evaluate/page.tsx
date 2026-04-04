@@ -17,7 +17,6 @@ const domains = [
   'Psychology',
   'Neuroscience',
   'Astronomy',
-  'Environmental Science',
   'Medicine',
 ];
 
