@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -51,7 +50,7 @@ export default function Leaderboard() {
         // Process hypotheses into model scores (aggregated across all domains)
         const modelScores = new Map<string, ModelScore>();
         
-        hypotheses.forEach((hypothesis: any) => {
+        hypotheses.forEach((hypothesis: { modelName: string; averageScores: { plausibility: number; novelty: number; testability: number } }) => {
           const key = hypothesis.modelName;
           const existing = modelScores.get(key) || {
             name: hypothesis.modelName,

@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { prisma } from '@/lib/prisma';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
-import type { ReasoningEffort } from 'openai/resources/shared';
+
 import modelConfigs from '@/config/model-configs.json';
 
 const openai = new OpenAI({

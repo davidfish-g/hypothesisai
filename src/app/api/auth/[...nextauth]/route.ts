@@ -23,7 +23,7 @@ const handler = NextAuth({
       }
       return session;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.expertise = user.expertise;
         token.scholarId = user.scholarId;

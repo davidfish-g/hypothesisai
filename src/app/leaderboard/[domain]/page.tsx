@@ -14,6 +14,15 @@ type ModelScore = {
   totalEvaluations: number;
 };
 
+type HypothesisWithScores = {
+  modelName: string;
+  averageScores: {
+    plausibility: number;
+    novelty: number;
+    testability: number;
+  };
+};
+
 type SortField = 'name' | 'plausibility' | 'novelty' | 'testability' | 'overall' | 'totalEvaluations';
 type SortDirection = 'asc' | 'desc';
 
@@ -41,7 +50,7 @@ export default function DomainLeaderboard({ params }: { params: Promise<{ domain
         // Process hypotheses into model scores for the selected domain
         const modelScores = new Map<string, ModelScore>();
         
-        hypotheses.forEach((hypothesis: any) => {
+        hypotheses.forEach((hypothesis: HypothesisWithScores) => {
           const key = hypothesis.modelName;
           const existing = modelScores.get(key) || {
             name: hypothesis.modelName,

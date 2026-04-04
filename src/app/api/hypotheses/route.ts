@@ -2,39 +2,6 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 
-type HypothesisWithEvaluations = {
-  id: string;
-  content: string;
-  modelName: string;
-  domain: string;
-  createdAt: Date;
-  metadata: any;
-  evaluations: Array<{
-    plausibility: number;
-    novelty: number;
-    testability: number;
-    user: {
-      expertise: string[];
-    };
-  }>;
-};
-
-type Scores = {
-  plausibility: number;
-  novelty: number;
-  testability: number;
-  count: number;
-};
-
-type Evaluation = {
-  plausibility: number;
-  novelty: number;
-  testability: number;
-  user: {
-    expertise: string[];
-  };
-};
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const domain = searchParams.get('domain');

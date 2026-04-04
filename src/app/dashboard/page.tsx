@@ -148,7 +148,7 @@ export default function Dashboard() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            You haven't evaluated any hypotheses yet.
+            You haven&apos;t evaluated any hypotheses yet.
           </motion.div>
         ) : (
           <div className="overflow-x-auto">

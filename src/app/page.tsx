@@ -36,7 +36,7 @@ export default function Home() {
           // Process hypotheses into model scores
           const modelScores = new Map<string, ModelScore>();
           
-          hypotheses.forEach((hypothesis: any) => {
+          hypotheses.forEach((hypothesis: { modelName: string; averageScores: { plausibility: number; novelty: number; testability: number } }) => {
             const key = hypothesis.modelName;
             const existing = modelScores.get(key) || {
               name: hypothesis.modelName,
