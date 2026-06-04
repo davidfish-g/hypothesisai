@@ -14,9 +14,45 @@ We welcome evaluations from all. Sign in at [hypothesisai-production.up.railway.
 
 ## Tech Stack
 
+- Bun
 - React
-- Next
+- Vite
+- React Router
+- Hono
 - PostgreSQL
 - OpenRouter
 - Tailwind
 
+## Development
+
+Install dependencies:
+
+```bash
+bun install
+```
+
+Copy `.env.example` to `.env` and fill in the required values.
+
+Run the client and API server together:
+
+```bash
+bun run dev
+```
+
+Build the production client:
+
+```bash
+bun run build
+```
+
+Start the Bun server after building:
+
+```bash
+bun run start
+```
+
+Apply the database schema:
+
+```bash
+bun run db:migrate
+```

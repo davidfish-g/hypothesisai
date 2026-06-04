@@ -1,4 +1,4 @@
--- Users (includes NextAuth fields + app-specific fields)
+-- Application users
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   name TEXT,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   "updatedAt" TIMESTAMPTZ DEFAULT NOW()
 );
 
--- OAuth accounts (NextAuth)
+-- OAuth accounts
 CREATE TABLE IF NOT EXISTS accounts (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   "userId" TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -26,14 +26,6 @@ CREATE TABLE IF NOT EXISTS accounts (
   id_token TEXT,
   session_state TEXT,
   UNIQUE(provider, "providerAccountId")
-);
-
--- Verification tokens (NextAuth)
-CREATE TABLE IF NOT EXISTS verification_tokens (
-  identifier TEXT NOT NULL,
-  token TEXT NOT NULL UNIQUE,
-  expires TIMESTAMPTZ NOT NULL,
-  UNIQUE(identifier, token)
 );
 
 -- Hypotheses

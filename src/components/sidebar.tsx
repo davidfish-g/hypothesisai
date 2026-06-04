@@ -1,26 +1,23 @@
-'use client';
-
-import Link from 'next/link';
-import Image from 'next/image';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { Link, useLocation } from 'react-router';
 import { Button } from '@/components/ui/button';
-import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useAuthActions, useSession } from '@/client/auth/auth-context';
 
 export function Sidebar() {
   const { data: session } = useSession();
-  const pathname = usePathname();
+  const { signIn, signOut } = useAuthActions();
+  const { pathname } = useLocation();
 
   const isActive = (path: string) => pathname === path;
 
   return (
     <div className="w-50 h-full bg-gray-800 border-r border-gray-700 flex flex-col">
       <div className="p-4 ">
-        <Link href="/" className="flex items-center gap-0 mt-3">
+        <Link to="/" className="flex items-center gap-0 mt-3">
           <span className="text-lg font-bold text-gray-200 hover:text-gray-300 px-3">
             HypothesisAI
           </span>
-          <Image
+          <img
             src="/logo.png"
             alt="HypothesisAI Logo"
             width={32}
@@ -32,7 +29,7 @@ export function Sidebar() {
       
       <nav className="flex-1 p-4 space-y-1 -mt-3">
         <Link 
-          href="/evaluate" 
+          to="/evaluate" 
           className={cn(
             "block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md hover:text-gray-100 transition-colors",
             isActive('/evaluate') && "bg-blue-800 text-white hover:bg-blue-900"
@@ -41,7 +38,7 @@ export function Sidebar() {
           Evaluate
         </Link>
         <Link 
-          href="/leaderboard" 
+          to="/leaderboard" 
           className={cn(
             "block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md hover:text-gray-100 transition-colors",
             isActive('/leaderboard') && "bg-blue-800 text-white hover:bg-blue-900"
@@ -50,7 +47,7 @@ export function Sidebar() {
           Leaderboard
         </Link>
         <Link 
-          href="/dashboard" 
+          to="/dashboard" 
           className={cn(
             "block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md hover:text-gray-100 transition-colors",
             isActive('/dashboard') && "bg-blue-800 text-white hover:bg-blue-900"
@@ -62,7 +59,7 @@ export function Sidebar() {
 
       <div className="p-4 space-y-1">
         <Link 
-          href="/about" 
+          to="/about" 
           className={cn(
             "block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md hover:text-gray-100 transition-colors",
             isActive('/about') && "bg-blue-800 text-white hover:bg-blue-900"
@@ -73,7 +70,7 @@ export function Sidebar() {
         {session ? (
           <div className="space-y-1">
             <Link 
-              href="/profile" 
+              to="/profile" 
               className={cn(
                 "block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md hover:text-gray-100 transition-colors",
                 isActive('/profile') && "bg-blue-800 text-white hover:bg-blue-900"
@@ -84,7 +81,7 @@ export function Sidebar() {
             <Button
               variant="outline"
               className="w-full text-sm"
-              onClick={() => signOut()}
+              onClick={() => void signOut()}
             >
               Sign Out
             </Button>
@@ -92,7 +89,7 @@ export function Sidebar() {
         ) : (
           <Button
             className="w-full text-sm"
-            onClick={() => signIn('google')}
+            onClick={() => signIn('/dashboard')}
           >
             Sign In with Google
           </Button>
