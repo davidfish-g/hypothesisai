@@ -20,7 +20,17 @@ function requireEnv(name: string) {
 }
 
 export function getAppOrigin(c: Context) {
-  return process.env.APP_URL || new URL(c.req.url).origin;
+  if (process.env.APP_URL) {
+    return normalizeOrigin(process.env.APP_URL);
+  }
+
+  const forwardedHost = c.req.header("x-forwarded-host");
+  if (forwardedHost) {
+    const forwardedProto = c.req.header("x-forwarded-proto") || "https";
+    return normalizeOrigin(`${forwardedProto}://${forwardedHost}`);
+  }
+
+  return normalizeOrigin(new URL(c.req.url).origin);
 }
 
 export function googleRedirectUri(c: Context) {
@@ -237,4 +247,8 @@ function parseStoredState(value: string) {
   } catch {
     return null;
   }
+}
+
+function normalizeOrigin(value: string) {
+  return new URL(value).origin;
 }
