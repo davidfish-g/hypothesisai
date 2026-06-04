@@ -5,7 +5,7 @@ const eslintConfig = [
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: [".next/**", "dist/**", "node_modules/**"],
+    ignores: ["dist/**", "node_modules/**"],
   },
 ];
 

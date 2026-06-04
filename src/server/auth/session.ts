@@ -20,7 +20,7 @@ export const sessionCookieName = "hypothesisai_session";
 const encoder = new TextEncoder();
 
 function sessionSecret() {
-  const secret = process.env.SESSION_SECRET || process.env.NEXTAUTH_SECRET;
+  const secret = process.env.SESSION_SECRET;
   if (!secret) {
     throw new Error("SESSION_SECRET is required");
   }

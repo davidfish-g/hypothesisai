@@ -20,7 +20,7 @@ function requireEnv(name: string) {
 }
 
 export function getAppOrigin(c: Context) {
-  return process.env.APP_URL || process.env.NEXTAUTH_URL || new URL(c.req.url).origin;
+  return process.env.APP_URL || new URL(c.req.url).origin;
 }
 
 export function googleRedirectUri(c: Context) {
